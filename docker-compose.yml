@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: supertienda-mongodb
+    ports:
+      - "27017:27017" # Mapea el puerto de MongoDB al host
+    volumes:
+      - mongodb_data:/data/db # Persistencia de datos
+
+  app: # Nuevo servicio para la aplicación Node.js
+    build: . # Docker construirá la imagen desde el Dockerfile en el directorio actual
+    container_name: supertienda-app
+    ports:
+      - "3000:3000" # Mapea el puerto 3000 de la aplicación al host
+    environment:
+      # Estas variables de entorno serán accesibles dentro del contenedor 'app'
+      # Asegúrate de que coincidan con las de tu archivo .env
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/supertienda_db # ¡Importante! Usar el nombre del servicio de MongoDB
+      JWT_SECRET: supertienda_secreta_jwt # Reemplaza con una clave segura (ej. desde tu .env)
+    depends_on:
+      - mongodb # Asegura que el servicio 'mongodb' se inicie antes que 'app'
+    volumes:
+      - .:/app # Monta el código de tu proyecto en el contenedor (útil para desarrollo)
+      - /app/node_modules # Evita que los node_modules del host sobrescriban los del contenedor
+
+volumes:
+  mongodb_data: # Define el volumen para la persistencia de datos de MongoDB
